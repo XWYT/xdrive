@@ -65,7 +65,7 @@ const columns = computed(() => {
       },
     },
     {
-      title: 'Name',
+      title: '名称',
       key: 'key',
       minWidth: 200,
       render: (row: R2Object) => {
@@ -81,7 +81,7 @@ const columns = computed(() => {
       },
     },
     {
-      title: 'Size',
+      title: '大小',
       key: 'size',
       align: 'center',
       minWidth: 100,
@@ -98,14 +98,14 @@ const columns = computed(() => {
       },
     },
     {
-      title: 'Type',
+      title: '类型',
       key: 'httpMetadata.contentType',
       align: 'center',
       minWidth: 100,
       render: (row: R2Object) => {
-        if (row.key === '/') return 'root'
-        if (row.key === '../') return 'parent'
-        if (row.key.endsWith('/')) return 'folder'
+  if (row.key === '/') return '根目录'
+  if (row.key === '../') return '上级'
+  if (row.key.endsWith('/')) return '文件夹'
         return row.httpMetadata?.contentType || '?'
       },
       filter(value, row) {
@@ -120,7 +120,7 @@ const columns = computed(() => {
       ],
     },
     {
-      title: 'Last Modified',
+      title: '最后修改',
       key: 'uploaded',
       align: 'center',
       render: (row: R2Object) => {
@@ -173,10 +173,10 @@ const columns = computed(() => {
               navigator.clipboard
                 .writeText(url)
                 .then(() => {
-                  nmessage.success('URL copied to clipboard')
+                  nmessage.success('链接已复制到剪贴板')
                 })
                 .catch((err) => {
-                  nmessage.error('Failed to copy URL')
+                  nmessage.error('复制链接失败')
                 })
               break
             case 'download':
@@ -194,10 +194,10 @@ const columns = computed(() => {
           <div>
             <NDropdown
               options={[
-                { label: 'Copy URL', key: 'copy_url' },
-                { label: 'Download', key: 'download' },
-                { label: 'Rename', key: 'rename' },
-                { label: 'Delete', key: 'delete' },
+                { label: '复制链接', key: 'copy_url' },
+                { label: '下载', key: 'download' },
+                { label: '重命名', key: 'rename' },
+                { label: '删除', key: 'delete' },
               ]}
               onSelect={onSelect}
             >

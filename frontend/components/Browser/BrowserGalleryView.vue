@@ -3,15 +3,15 @@
   .sort-actions(flex, justify-center, mb-4)
     NButtonGroup
       NButton(
-        v-for='item in sortActions',
-        :key='item.key',
-        :type='item.active ? "primary" : "default"',
-        icon-placement='right',
-        secondary,
-        @click='item.onClick'
-      ) 
-        template(#icon, v-if='item.icon'): component(:is='item.icon')
-        | {{ item.label }}
+          v-for='item in sortActions',
+          :key='item.key',
+          :type='item.active ? "primary" : "default"',
+          icon-placement='right',
+          secondary,
+          @click='item.onClick'
+        ) 
+          template(#icon, v-if='item.icon'): component(:is='item.icon')
+          | {{ item.label }}
 
   Waterfall(
     v-if='list.length > 0',
@@ -51,7 +51,7 @@
           NEllipsis(text-4, max-w-full) {{ item.key === '/' ? '/(root)' : item.key.replace(payload.prefix, '').replace(/\/$/, '') }}
           .flex(items-center)
             .file-info.flex-1
-              NText(v-if='item.key.endsWith("/")', depth='3', block, text-3) {{ item.key === '/' ? 'root' : item.key === '../' ? 'parent' : 'folder' }}
+              NText(v-if='item.key.endsWith("/")', depth='3', block, text-3) {{ item.key === '/' ? '根目录' : item.key === '../' ? '上级' : '文件夹' }}
               NText(v-if='!item.key.endsWith("/")', depth='3', block, text-3) {{ new Date(item.uploaded || 0).toLocaleString() }}
               NText(v-if='!item.key.endsWith("/")', depth='3', block, text-3) {{ FileHelper.formatFileSize(item.size) }}
             .file-actions(v-if='!item.key.endsWith("/")', @click.stop)
@@ -98,9 +98,9 @@ const changeSort = (key: 'key' | 'size' | 'uploaded') => {
 }
 const sortActions = computed(() => {
   return [
-    { label: 'Name', key: 'key', onClick: () => changeSort('key') },
-    { label: 'Size', key: 'size', onClick: () => changeSort('size') },
-    { label: 'Date', key: 'uploaded', onClick: () => changeSort('uploaded') },
+    { label: '名称', key: 'key', onClick: () => changeSort('key') },
+      { label: '大小', key: 'size', onClick: () => changeSort('size') },
+      { label: '日期', key: 'uploaded', onClick: () => changeSort('uploaded') },
   ].map((item) => {
     return {
       ...item,
@@ -167,10 +167,10 @@ function onClickItem(item: R2Object) {
   emit('navigate', item)
 }
 const fileActionOptions = ref([
-  { label: 'Copy URL', key: 'copy_url' },
-  { label: 'Download', key: 'download' },
-  { label: 'Rename', key: 'rename' },
-  { label: 'Delete', key: 'delete' },
+  { label: '复制链接', key: 'copy_url' },
+  { label: '下载', key: 'download' },
+  { label: '重命名', key: 'rename' },
+  { label: '删除', key: 'delete' },
 ])
 const onSelectAction = (action: string, item: R2Object) => {
   switch (action) {
@@ -178,10 +178,10 @@ const onSelectAction = (action: string, item: R2Object) => {
       navigator.clipboard
         .writeText(bucket.getCDNUrl(item))
         .then(() => {
-          nmessage.success('URL copied to clipboard')
+          nmessage.success('链接已复制到剪贴板')
         })
         .catch((err) => {
-          nmessage.error('Failed to copy URL')
+          nmessage.error('复制链接失败')
         })
       break
     case 'download':

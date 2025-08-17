@@ -20,41 +20,42 @@
         div(v-if='rawTextContent !== null', min-h='200px', max-h='50vh', overflow-auto)
           MarkdownRender(:value='rawTextContent', tag='div')
         NSpin(v-else, show, size='small')
-          NP Loading...
+          NP 加载中...
       .preview-file-text(v-else-if='previewType === "text"')
         div(v-if='rawTextContent !== null', min-h='200px', max-h='50vh', overflow-auto)
           Hljs(:code='rawTextContent', :lang='fileNameParts.ext')
         NSpin(v-else, show, size='small')
-          NP Loading...
+          NP 加载中...
       .preview-file-iframe(v-else-if='previewType === "iframe"', text-center)
-        iframe(:src='cdnUrl', w-full, h-50vh, onerror='this.replaceWith("Error loading file")')
+        iframe(:src='cdnUrl', w-full, h-50vh, onerror='this.replaceWith("无法加载文件")')
       .preview-file-unknown(v-else, text-center)
         NIcon(size='40'): IconFileUnknown
-        NP Preview not supported
+        NP 无法预览该文件类型
 
     .preview-actions(mt-4, text-center)
       NButtonGroup
-        NButton(size='small', type='primary', @click='emit("download", item)') Download
-        NButton(size='small', type='info', @click='handleCopyURL') Copy URL
-        NButton(size='small', type='error', @click='emit("delete", item)'): NIcon: IconTrash
+        NButton(size='small', type='primary', @click='emit("download", item)') 下载
+        NButton(size='small', type='info', @click='handleCopyURL') 复制链接
+        NButton(size='small', type='error', @click='emit("delete", item)')
+          NIcon: IconTrash
 
     .preview-details(v-if='item', mt-4, flex, flex-col, gap-4)
       NTable
         tr
-          th Name
+          th 名称
           td {{ fileNameParts.name }}
         tr
-          th Size
+          th 大小
           td {{ item.size }}
         tr
-          th Type
-          td {{ item.httpMetadata?.contentType || 'unknown' }}
+          th 类型
+          td {{ item.httpMetadata?.contentType || '未知' }}
         tr
-          th Last Modified
-          td {{ item.uploaded ? new Date(item.uploaded).toLocaleString() : 'unknown' }}
+          th 最后修改
+          td {{ item.uploaded ? new Date(item.uploaded).toLocaleString() : '未知' }}
         tr
-          th Custom Metadata
-          td(v-if='!Object.keys(item?.customMetadata || {}).length') No metadata
+          th 自定义元数据
+          td(v-if='!Object.keys(item?.customMetadata || {}).length') 无元数据
           NTable(v-else, :bordered='false', size='small')
             tr(v-for='(value, key) in (item.customMetadata || {})')
               th(width='100') {{ decodeURIComponent(key) }}

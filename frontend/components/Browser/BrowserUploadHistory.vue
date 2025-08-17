@@ -1,7 +1,7 @@
 <template lang="pug">
 NDrawer(v-model:show='show', placement='bottom', default-height='75vh', resizable)
   NDrawerContent(closable)
-    template(#header) Upload History
+  template(#header) 上传记录
     BrowserListView(
       :payload='payload',
       no-folder,

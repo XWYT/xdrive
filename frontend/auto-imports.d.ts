@@ -10,6 +10,7 @@ declare global {
   const CDN_BASE_URL: typeof import('../common/app-env')['CDN_BASE_URL']
   const EffectScope: typeof import('vue')['EffectScope']
   const FLARE_DRIVE_HIDDEN_KEY: typeof import('../common/app-env')['FLARE_DRIVE_HIDDEN_KEY']
+  const MAX_STORAGE_BYTES: typeof import('../common/app-env')['MAX_STORAGE_BYTES']
   const PREVIEW_SIZE_LIMIT_TEXT: typeof import('../common/app-env')['PREVIEW_SIZE_LIMIT_TEXT']
   const RANDOM_UPLOAD_DIR: typeof import('../common/app-env')['RANDOM_UPLOAD_DIR']
   const THUMBNAIL_SIZE: typeof import('./utils/FileHelper')['THUMBNAIL_SIZE']
@@ -344,6 +345,7 @@ declare module 'vue' {
     readonly CDN_BASE_URL: UnwrapRef<typeof import('../common/app-env')['CDN_BASE_URL']>
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
     readonly FLARE_DRIVE_HIDDEN_KEY: UnwrapRef<typeof import('../common/app-env')['FLARE_DRIVE_HIDDEN_KEY']>
+    readonly MAX_STORAGE_BYTES: UnwrapRef<typeof import('../common/app-env')['MAX_STORAGE_BYTES']>
     readonly PREVIEW_SIZE_LIMIT_TEXT: UnwrapRef<typeof import('../common/app-env')['PREVIEW_SIZE_LIMIT_TEXT']>
     readonly RANDOM_UPLOAD_DIR: UnwrapRef<typeof import('../common/app-env')['RANDOM_UPLOAD_DIR']>
     readonly THUMBNAIL_SIZE: UnwrapRef<typeof import('./utils/FileHelper')['THUMBNAIL_SIZE']>

@@ -1,6 +1,6 @@
 <template lang="pug">
 #upload-view
-  NCard(title='Upload file')
+  NCard(title='上传文件')
     UploadForm
 </template>
 

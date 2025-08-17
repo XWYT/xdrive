@@ -26,17 +26,17 @@
             NInput(
               w-full,
               size='small',
-              :placeholder='`Search files in /${currentPath}`',
+              :placeholder='`在 /${currentPath} 中搜索文件`',
               v-model:value='searchInput',
               clearable
             )
               template(#prefix): NIcon(mr-2): IconSearch
           //- dir status
           NText.file-count-info(depth='3')
-            template(v-if='!searchInput') {{ curObjectCount.folders }} {{ curObjectCount.folders > 1 ? 'folders' : 'folder' }} / {{ curObjectCount.files }} {{ curObjectCount.files > 1 ? 'files' : 'file' }}
+            template(v-if='!searchInput') {{ curObjectCount.folders }} 个文件夹 / {{ curObjectCount.files }} 个文件
             template(v-if='searchInput')
               NIcon(mr-2): IconFilter
-              | {{ filteredPayload.objects.length }} in {{ curObjectCount.files }}
+              | 搜索到 {{ filteredPayload.objects.length }} / 共 {{ curObjectCount.files }} 个文件
           //- file operations
           NButtonGroup(size='small', lt-md='hidden')
             NTooltip(
@@ -72,16 +72,16 @@
       NIcon(size='12'): component(:is='isShowTopStickyRail ? IconChevronCompactUp : IconChevronCompactDown')
 
   //- Alerts
-  NAlert(v-if='bucket.checkIsRandomUploadDir(currentPath)', type='info', title='Random upload', closable, my-4) 
-    | This is a random upload directory. The files uploaded here will be stored in a random name. You can find the final URL in the
+  NAlert(v-if='bucket.checkIsRandomUploadDir(currentPath)', type='info', title='随机上传目录', closable, my-4) 
+    | 这是一个随机上传目录。上传到此处的文件会使用随机名称保存。最终访问链接可在
     |
     NA(@click='isShowUploadHistory = true')
       NIcon(mr-1): IconHistory
-      | upload history
-    | .
-  NAlert(v-if='bucket.checkIsHiddenDir(currentPath)', type='warning', title='Hidden directory', closable, my-4)
-    | This hidden directory is for internal use of the FlareDrive application.
-    | It's strongly recommended to not upload or delete files in this directory.
+      | 上传记录
+    | 。
+  NAlert(v-if='bucket.checkIsHiddenDir(currentPath)', type='warning', title='隐藏目录', closable, my-4)
+    | 此隐藏目录供 FlareDrive 应用内部使用。
+    | 强烈建议不要在此目录中上传或删除文件。
 
   //- file browser
   NSkeleton(v-if='!payload', height='200px')
@@ -195,6 +195,7 @@
 <script setup lang="tsx">
 import { type R2BucketListResponse } from '@/models/R2BucketClient'
 import { FileHelper } from '@/utils/FileHelper'
+import { MAX_STORAGE_BYTES } from '../../common/app-env'
 import type { R2Object } from '@cloudflare/workers-types/2023-07-01'
 import {
   IconBook,
@@ -212,7 +213,7 @@ import {
   IconSearch,
   IconUpload,
 } from '@tabler/icons-vue'
-import { NFormItem, NInput, NSkeleton, useMessage, useModal } from 'naive-ui'
+import { NFormItem, NInput, NSkeleton, NSelect, useMessage, useModal } from 'naive-ui'
 import type { Component } from 'vue'
 
 definePage({
@@ -307,6 +308,8 @@ async function loadFileList() {
   try {
     const { data } = await bucket.list(currentPath.value)
     payload.value = data
+  // update used bytes after loading file list
+  bucket.refreshUsedBytes(currentPath.value).catch(() => {})
   } catch (error) {
     console.error('Error fetching data:', error)
     payload.value = undefined
@@ -350,28 +353,28 @@ function onNavigate(item: R2Object) {
 }
 async function onDelete(item: R2Object) {
   nmodal.create({
-    title: 'Delete File',
+    title: '删除文件',
     type: 'error',
     preset: 'confirm',
     content: () => {
       return (
         <div>
-          Are you sure you want to delete <code>{item.key.split('/').pop()}</code>?
+          确定要删除 <code>{item.key.split('/').pop()}</code> 吗？
         </div>
       )
     },
-    positiveText: 'Delete',
-    negativeText: 'Keep the file',
+    positiveText: '删除',
+    negativeText: '保留文件',
     onPositiveClick() {
       bucket
         .deleteFile(item)
         .then(() => {
-          nmessage.success('File deleted successfully')
+          nmessage.success('文件删除成功')
           payload.value?.objects.splice(payload.value.objects.indexOf(item), 1)
           isShowPreview.value = false
         })
         .catch((err) => {
-          nmessage.error(`Failed to delete file: ${err}`)
+          nmessage.error(`删除文件失败：${err}`)
         })
     },
   })
@@ -382,23 +385,23 @@ async function onDownload(item: R2Object) {
   a.href = url
   a.download = item.key.split('/').pop() || `FlareDrive_download_${Date.now()}`
   a.click()
-  nmessage.success('Download started')
+  nmessage.success('开始下载')
 }
 async function onRename(item: R2Object) {
   const toPathInput = ref(item.key)
   nmodal.create({
-    title: 'Rename File',
+    title: '重命名文件',
     preset: 'confirm',
     autoFocus: true,
     content: () => {
       return (
-        <NFormItem label="New Name (including path)">
+        <NFormItem label="新名称（含路径）">
           <NInput value={toPathInput.value} onUpdateValue={(e) => (toPathInput.value = e)} clearable />
         </NFormItem>
       )
     },
-    positiveText: 'OK',
-    negativeText: 'Cancel',
+    positiveText: '确定',
+    negativeText: '取消',
     onPositiveClick() {
       const toPath = toPathInput.value
       const fromFolder = item.key.split('/').slice(0, -1).join('/')
@@ -409,14 +412,14 @@ async function onRename(item: R2Object) {
       bucket
         .rename(item.key, toPath)
         .then(() => {
-          nmessage.success('File renamed successfully')
+          nmessage.success('文件重命名成功')
           // @ts-ignore
           item.key = toPath
           // @ts-ignore
           item.uploaded = new Date().toISOString()
         })
         .catch((err) => {
-          nmessage.error(`Failed to rename file: ${err}`)
+          nmessage.error(`重命名失败：${err}`)
         })
     },
   })
@@ -462,6 +465,114 @@ async function handleCreateFolder() {
   })
 }
 
+async function attemptQueueOrHandle(key: string, file: File) {
+  try {
+    const { promise } = bucket.addToUploadQueue(key, file)
+    promise.then((item) => {
+      if (!item) {
+        nmessage.error(`Failed to upload file ${file.name}`)
+      }
+    })
+    return
+  } catch (err: any) {
+    // If unknown used bytes, refresh and retry once
+    if (err.code === 'unknown_used') {
+      await bucket.refreshUsedBytes(currentPath.value)
+      try {
+        const { promise } = bucket.addToUploadQueue(key, file)
+        promise.then((item) => {
+          if (!item) {
+            nmessage.error(`Failed to upload file ${file.name}`)
+          }
+        })
+        return
+      } catch (e: any) {
+        err = e
+      }
+    }
+    if (err.code === 'exceed') {
+      // show quota modal to let user choose replace / delete / cancel
+      await showQuotaModal(file, key, err)
+      return
+    }
+    nmessage.error(`上传失败：${err?.message || err}`)
+  }
+}
+
+async function showQuotaModal(file: File, key: string, err: any) {
+  const existing = payload.value?.objects?.find((o) => o.key === key)
+  const selectOptions = (payload.value?.objects || []).map((o) => {
+    const name = o.key.split('/').pop() || o.key
+    const size = o.size || 0
+    return { label: `${name} (${FileHelper.formatFileSize(size)})`, value: o.key }
+  })
+  return new Promise<void>((resolve) => {
+    let selectedToDelete: string | null = selectOptions.length ? selectOptions[0].value : null
+    const modal = nmodal.create({
+      title: '空间不足',
+      preset: 'confirm',
+      content: () => {
+        return (
+          <div>
+            <p>
+              上传 <strong>{file.name}</strong> 会导致超出配额（已用 {bucket.usedBytes?.value ? FileHelper.formatFileSize(bucket.usedBytes.value) : '未知'} / {FileHelper.formatFileSize(MAX_STORAGE_BYTES)}）。请选择操作：
+            </p>
+            {selectOptions.length ? (
+              <NFormItem label='从当前目录删除文件以释放空间'>
+                <NSelect
+                  options={selectOptions}
+                  value={selectedToDelete}
+                  onUpdateValue={(v: any) => (selectedToDelete = v)}
+                />
+              </NFormItem>
+            ) : null}
+          </div>
+        )
+      },
+      positiveText: existing ? '替换同名文件' : '删除所选文件并上传',
+      negativeText: '取消',
+      onPositiveClick: async () => {
+        try {
+          if (existing) {
+            await bucket.deleteFile(existing)
+          } else if (selectedToDelete) {
+            const item = payload.value?.objects.find((o) => o.key === selectedToDelete)
+            if (item) {
+              await bucket.deleteFile(item)
+            }
+          } else {
+            return false
+          }
+          // refresh used bytes and file list then retry upload
+          await bucket.refreshUsedBytes(currentPath.value)
+          await loadFileList()
+          try {
+            const { promise } = bucket.addToUploadQueue(key, file)
+            promise.then((item) => {
+              if (!item) {
+                nmessage.error(`Failed to upload file ${file.name}`)
+              }
+            })
+            resolve()
+            return true
+          } catch (e: any) {
+            nmessage.error(`重新上传失败：${e?.message || e}`)
+            resolve()
+            return true
+          }
+        } catch (e: any) {
+          nmessage.error(`操作失败：${e?.message || e}`)
+          resolve()
+          return true
+        }
+      },
+      onNegativeClick() {
+        resolve()
+      },
+    })
+  })
+}
+
 function handleUploadInput(files: FileList | File[] | null, prefix = currentPath.value) {
   if (!files || !files.length) {
     return
@@ -472,18 +583,14 @@ function handleUploadInput(files: FileList | File[] | null, prefix = currentPath
   })
   nmessage.info(
     files.length > 1 || bucket.currentBatchTotal
-      ? `Added ${files.length} files to queue...`
-      : `Uploading ${files[0].name}...`
+      ? `已将 ${files.length} 个文件加入上传队列...`
+      : `正在上传 ${files[0].name}...`
   )
   files.forEach((file) => {
     const fileName = file.name
     if (fileName) {
-      const { promise } = bucket.addToUploadQueue(`${prefix.replace(/\/+$/, '')}/${fileName}`, file)
-      promise.then((item) => {
-        if (!item) {
-          nmessage.error(`Failed to upload file ${fileName}`)
-        }
-      })
+      const key = `${prefix.replace(/\/+/g, '/')}/${fileName}`
+      attemptQueueOrHandle(key, file)
     }
   })
 }
@@ -513,13 +620,13 @@ watch(
   (newState, oldState) => {
     if (oldState && !newState) {
       loadFileList()
-      if (bucket.currentBatchTotal > 1) {
-        nmessage.success(`Upload finished, ${bucket.currentBatchTotal} files uploaded`)
+        if (bucket.currentBatchTotal > 1) {
+        nmessage.success(`上传完成，共 ${bucket.currentBatchTotal} 个文件已上传`)
       } else {
         const item = bucket.uploadHistory[0]
         if (!item) return
         const { name } = FileHelper.getSimpleFileInfoByObject(item)
-        nmessage.success(`Successfully uploaded ${name}`)
+        nmessage.success(`上传成功：${name}`)
       }
     }
   }
@@ -539,38 +646,38 @@ const pathActions = computed<
 >(() => {
   return [
     {
-      label: 'Upload',
+      label: '上传',
       type: 'primary',
-      tooltip: 'Upload files',
+      tooltip: '上传文件',
       icon: IconCloudUpload,
       action: () => createUploadModal(false),
     },
     {
       label: '',
       type: 'primary',
-      tooltip: 'Upload files with random name',
+      tooltip: '随机名称上传',
       icon: IconCloudBolt,
       action: () => createUploadModal(true),
     },
     {
       label: '',
-      tooltip: 'Create folder',
+      tooltip: '创建文件夹',
       icon: IconFolderPlus,
       action: handleCreateFolder,
     },
     {
       label: '',
-      tooltip: 'Upload history',
+      tooltip: '上传记录',
       icon: IconHistory,
       action: () => (isShowUploadHistory.value = true),
     },
     {
       label: '',
-      tooltip: 'Refresh file list',
+      tooltip: '刷新文件列表',
       icon: IconReload,
       loading: isLoading.value,
       action: () => {
-        loadFileList().then(() => nmessage.success('Refresh success'))
+        loadFileList().then(() => nmessage.success('刷新成功'))
       },
     },
   ]

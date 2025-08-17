@@ -22,17 +22,17 @@ const theme = useThemeStore()
 const themeOptions = shallowRef<DropdownOption[]>([
   {
     type: '',
-    label: 'Auto',
+    label: '自动',
     key: 'auto',
     icon: () => '🌈',
   },
   {
-    label: 'Light',
+    label: '浅色',
     key: 'light',
     icon: () => '🌞',
   },
   {
-    label: 'Dark',
+    label: '深色',
     key: 'dark',
     icon: () => '🌚',
   },

@@ -1,5 +1,6 @@
 import { R2BucketClient } from '@/models/R2BucketClient'
 import { FileHelper } from '@/utils/FileHelper'
+import { MAX_STORAGE_BYTES } from '../../common/app-env'
 import type { R2Object } from '@cloudflare/workers-types/2023-07-01'
 import PQueue from 'p-queue'
 
@@ -257,7 +258,60 @@ export const useBucketStore = defineStore('bucket', () => {
     }[]
   >([])
 
+  // Storage quota tracking (in bytes)
+  const usedBytes = ref<number | null>(null)
+
+  const refreshUsedBytes = async (prefix = '/') => {
+    // Aggregate object sizes under the bucket (may need pagination in backend)
+    try {
+      let total = 0
+      let startAfter: string | undefined = undefined
+      // loop to handle pagination if backend supports startAfter
+      while (true) {
+        const resp = await client.list(prefix, { startAfter, limit: 1000 })
+        const objects: R2Object[] = resp.data.objects || []
+        for (const obj of objects) {
+          total += obj.size || 0
+        }
+        if (!resp.data.hasMore || !resp.data.moreAfter) {
+          break
+        }
+        startAfter = resp.data.moreAfter || undefined
+      }
+      usedBytes.value = total
+      return total
+    } catch (e) {
+      console.error('Failed to refresh used bytes', e)
+      usedBytes.value = null
+      return null
+    }
+  }
+
+  const canUploadBytes = (size: number) => {
+    // If usedBytes is null (unknown), be conservative and allow but recommend refresh
+    if (typeof size !== 'number' || isNaN(size) || size < 0) {
+      return { ok: false, reason: 'invalid_size' }
+    }
+    if (usedBytes.value === null) {
+      return { ok: true, reason: 'unknown_used', usedBytes: null, max: MAX_STORAGE_BYTES }
+    }
+    const willBe = usedBytes.value + size
+    if (willBe > MAX_STORAGE_BYTES) {
+      return { ok: false, reason: 'exceed', usedBytes: usedBytes.value, max: MAX_STORAGE_BYTES }
+    }
+    return { ok: true, reason: 'ok', usedBytes: usedBytes.value, max: MAX_STORAGE_BYTES }
+  }
+
   const addToUploadQueue = (key: string, file: File) => {
+    // Check storage quota before queueing
+    const check = canUploadBytes(file.size)
+    if (!check.ok) {
+      const err: any = new Error('Storage quota exceeded')
+      err.code = check.reason
+      err.usedBytes = check.usedBytes
+      err.max = check.max
+      throw err
+    }
     const existing = pendinUploadList.value.find((item) => item.key === key)
     if (existing) {
       console.info('Upload already in queue', key, file)
@@ -316,5 +370,8 @@ export const useBucketStore = defineStore('bucket', () => {
     currentBatchFinished,
     currentBatchPercentage,
     uploadFailedList,
+  usedBytes,
+  refreshUsedBytes,
+  canUploadBytes,
   }
 })

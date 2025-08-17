@@ -70,7 +70,7 @@ const props = withDefaults(
 const bucket = useBucketStore()
 
 const bookName = computed(() => {
-  if (!props.payload) return 'Loading...'
+  if (!props.payload) return '加载中...'
   const pathParts = props.payload.prefix.split('/').filter(Boolean)
   const thisPart = pathParts[pathParts.length - 1]
   // 从后往前找最后一个不是纯数字组成的文件夹名
@@ -78,7 +78,7 @@ const bookName = computed(() => {
     return part && !/^\d+$/.test(part)
   })
   if (!maybeBookName || maybeBookName === thisPart) {
-    return thisPart || 'Untitled'
+    return thisPart || '未命名'
   }
   return `${maybeBookName} - ${thisPart}`
 })

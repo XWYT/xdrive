@@ -1,6 +1,6 @@
 <template lang="pug">
 NProgress(:percentage='bucket.currentBatchPercentage', type='line', :status)
-  | {{ bucket.currentBatchFinished }} / {{ bucket.currentBatchTotal }} ({{ bucket.currentBatchPercentage }}%)
+  | {{ bucket.currentBatchFinished }} / {{ bucket.currentBatchTotal }} （{{ bucket.currentBatchPercentage }}%）
 </template>
 
 <script setup lang="ts">

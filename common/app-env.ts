@@ -60,3 +60,14 @@ export const PREVIEW_SIZE_LIMIT_TEXT = readEnv('VITE_PREVIEW_SIZE_LIMIT_TEXT', 5
   }
   return parsedValue
 })
+
+/**
+ * Max storage bytes for free tier. Default to 10GB. Can be overridden by VITE_MAX_STORAGE_BYTES.
+ */
+export const MAX_STORAGE_BYTES = readEnv('VITE_MAX_STORAGE_BYTES', 10 * 1024 * 1024 * 1024, (value) => {
+  const parsedValue = parseInt(value)
+  if (isNaN(parsedValue) || parsedValue < 0) {
+    return 10 * 1024 * 1024 * 1024
+  }
+  return parsedValue
+})
