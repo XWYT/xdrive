@@ -42,6 +42,7 @@ export class R2BucketClient {
     options?: {
       contentType?: string
       metadata?: Record<string, string>
+  onUploadProgress?: (progressEvent: any) => void
     }
   ) {
     const metadata = options?.metadata || {}
@@ -63,6 +64,7 @@ export class R2BucketClient {
         ...metaHeaders,
         'Content-Type': contentType || 'application/octet-stream',
       },
+      onUploadProgress: options?.onUploadProgress,
     })
   }
 

@@ -167,7 +167,7 @@
     transition='all ease-in-out',
     :style='bucket.isUploading ? { bottom: "1rem", opacity: "1", transitionDuration: "0.25s" } : { bottom: "-10rem", opacity: "0", transitionDelay: "3s", transitionDuration: "0.75s" }'
   )
-    UploadProgress
+  UploadQueuePanel
 
   //- floating action button
   NFloatButton(type='primary', menu-trigger='hover', position='fixed', bottom='3rem', right='2rem', z-2)
@@ -224,7 +224,7 @@ definePage({
 const BrowserReadmeCard = defineAsyncComponent(() => import('@/components/Browser/BrowserReadmeCard.vue'))
 const BrowserPreviewModal = defineAsyncComponent(() => import('@/components/Browser/BrowserPreviewModal.vue'))
 const BrowserUploadHistory = defineAsyncComponent(() => import('@/components/Browser/BrowserUploadHistory.vue'))
-const UploadProgress = defineAsyncComponent(() => import('@/components/UploadProgress.vue'))
+const UploadQueuePanel = defineAsyncComponent(() => import('@/components/UploadQueuePanel.vue'))
 
 const route = useRoute()
 const router = useRouter()

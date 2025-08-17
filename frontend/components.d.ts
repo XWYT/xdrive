@@ -65,5 +65,6 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     UploadForm: typeof import('./components/UploadForm.vue')['default']
     UploadProgress: typeof import('./components/UploadProgress.vue')['default']
+    UploadQueuePanel: typeof import('./components/UploadQueuePanel.vue')['default']
   }
 }
